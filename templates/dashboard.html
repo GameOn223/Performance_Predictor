@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Student Performance Dashboard</h1>
+            <div class="filters">
+                <select id="classSelect" onchange="handleClassChange()">
+                    <option value="">Select Class</option>
+                    {% for class in classes %}
+                    <option value="{{ class }}">{{ class }}</option>
+                    {% endfor %}
+                </select>
+                <select id="studentSelect" onchange="loadStudentAnalysis()">
+                    <option value="">Select Student</option>
+                    {% for student in students %}
+                    <option value="{{ student.student_id }}" data-class="{{ student.class }}">{{ student.student_name }} - {{ student.student_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="dashboard-section" id="classInsights" style="display: none;">
+            <h2>Class Insights</h2>
+            <div id="classStats"></div>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <h3>Performance Distribution</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <div class="insight-card">
+                    <h3>Subject-wise Performance</h3>
+                    <canvas id="subjectChart"></canvas>
+                </div>
+            </div>
+            <div class="insight-card">
+                <h3>Areas of Concern</h3>
+                <div id="concernAreas"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-section" id="studentAnalysis" style="display: none;">
+            <h2>Student Analysis</h2>
+            <div id="studentInfo"></div>
+            
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="table">Table View</button>
+                <button class="view-btn" data-view="graph">Graph View</button>
+            </div>
+
+            <div id="graphView" class="view-content" style="display: none;">
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h3>Subject Performance</h3>
+                        <canvas id="studentSubjectsChart"></canvas>
+                    </div>
+                    <div class="insight-card">
+                        <h3>Term-wise Progress</h3>
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tableView" class="view-content">
+                <div class="insight-card">
+                    <h3>Academic Performance</h3>
+                    <div class="performance-table-container">
+                        <table id="performanceTable" class="performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>PAT-T1</th>
+                                    <th>SAT-T1</th>
+                                    <th>Term 1 Avg</th>
+                                    <th>PAT-T2</th>
+                                    <th>SAT-T2</th>
+                                    <th>Term 2 Avg</th>
+                                    <th>Overall</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="performanceTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="predictionsSection"></div>
+            <div class="insight-card">
+                <h3>Recommendations</h3>
+                <div id="recommendations"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Function to handle class selection change
+        function handleClassChange() {
+            const classSelect = document.getElementById('classSelect');
+            const studentSelect = document.getElementById('studentSelect');
+            const selectedClass = classSelect.value;
+
+            // Hide analysis sections when class changes
+            document.getElementById('classInsights').style.display = 'none';
+            document.getElementById('studentAnalysis').style.display = 'none';
+
+            // Filter students based on selected class
+            const options = studentSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                const studentClass = options[i].getAttribute('data-class');
+                if (!selectedClass || options[i].value === '' || studentClass === selectedClass) {
+                    options[i].style.display = '';
+                } else {
+                    options[i].style.display = 'none';
+                }
+            }
+
+            // Reset student selection
+            studentSelect.value = '';
+
+            // Load class analysis if a class is selected
+            if (selectedClass) {
+                loadClassAnalysis();
+            }
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            handleClassChange();
+        });
+    </script>
+</body>
+</html>
